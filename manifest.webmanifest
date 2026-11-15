@@ -1,0 +1,14 @@
+{
+  "name": "Glass Half Full",
+  "short_name": "Half Full",
+  "description": "Split it down the middle. A head to head halving duel for two phones.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#111B31",
+  "theme_color": "#111B31",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
