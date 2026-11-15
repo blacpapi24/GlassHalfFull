@@ -4,7 +4,8 @@ A splitting duel for two phones. Each round you both get the same thing (a bague
 
 - A perfect half scores 100, 1% off about 85, 5% off about 37. A cut within 0.5% adds a 10 point bonus.
 - **Two phones:** one of you starts a room and the other joins with its four-letter code (PeerJS). The room is saved on both phones, so a reload or a locked screen picks up where you left off.
-- **Pass and play** and **Practice** work on one phone.
+- **Pass and play**, **Solo Streak** (cut until your hearts run out; nailed cuts are your high score) and **Practice** work on one phone.
+- Avatars get bruised at 75%, 50% and 25% hearts, and react when they're hit.
 
 Play it at https://blacpapi24.github.io/GlassHalfFull/ (GitHub Pages, `main` branch, root). It's also part of [Dapple](https://blacpapi24.github.io/Dapple/), and rooms work between the two copies.
 

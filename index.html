@@ -139,6 +139,25 @@ input.code{text-transform:uppercase;letter-spacing:.3em;font-family:var(--displa
 .fighter .blobw{position:relative;flex:none}
 .blob{width:46px;height:auto;overflow:visible;display:block}
 .blob.hit{animation:shake .5s 2}
+.blob{transform-origin:50% 95%}
+.blob.ouch{animation:ouch .7s cubic-bezier(.3,1.4,.5,1)}
+@keyframes ouch{0%{transform:none}12%{transform:scale(1.28,.68) rotate(-8deg);filter:brightness(1.9)}32%{transform:scale(.84,1.16) rotate(7deg) translateY(-6px)}55%{transform:translateX(-5px) rotate(-5deg)}75%{transform:translateX(4px) rotate(3deg)}100%{transform:none}}
+.owie{position:absolute;left:62%;top:-20px;z-index:4;font-family:"Gaegu","Chalkboard SE","Comic Sans MS",cursive;font-weight:700;font-size:18px;line-height:1;color:#1B1A2E;background:#fff;border:2.5px solid #1B1A2E;border-radius:12px 14px 12px 4px;padding:2px 7px 4px;white-space:nowrap;animation:owie 1.6s forwards;pointer-events:none}
+@keyframes owie{0%{opacity:0;transform:scale(.3) rotate(-15deg)}12%{opacity:1;transform:scale(1.15) rotate(6deg)}25%{transform:scale(1) rotate(-3deg)}80%{opacity:1}100%{opacity:0;transform:translateY(-8px)}}
+.dizzy{position:absolute;left:50%;top:-4px;width:0;height:0;z-index:4;pointer-events:none;animation:dz 1.6s forwards}
+.dizzy i{position:absolute;font-style:normal;font-size:13px;color:#F2B84B;text-shadow:0 0 0 #1B1A2E,1px 1px 0 #1B1A2E;animation:orbit 1s linear infinite}
+.dizzy i:nth-child(2){animation-delay:-.33s}.dizzy i:nth-child(3){animation-delay:-.66s}
+@keyframes orbit{0%{transform:translate(-22px,0) scale(.8)}25%{transform:translate(0,-8px) scale(1)}50%{transform:translate(22px,0) scale(.8)}75%{transform:translate(0,6px) scale(1.2)}100%{transform:translate(-22px,0) scale(.8)}}
+@keyframes dz{0%,80%{opacity:1}100%{opacity:0}}
+.fighter.solo{flex-direction:row;align-items:center;gap:12px}
+.solo .blobw{position:relative;flex:none}
+.solo .blob{width:58px}
+.solo .grow{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+.statrow{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+.stat{padding:8px 14px 10px;text-align:center;min-width:96px}
+.stat b{display:block;font-family:var(--display);font-size:30px;line-height:1;font-variant-numeric:tabular-nums}
+.stat span{font-size:14px;color:var(--ink-soft)}
+
 .blob.win{animation:hop .45s 2}
 .hp{height:16px;border-radius:999px;background:var(--mat);overflow:hidden;position:relative;border:1.5px solid var(--line)}
 .hp i{position:absolute;inset:0 auto 0 0;border-radius:999px;transition:width 1s cubic-bezier(.4,1.6,.5,1);background-image:repeating-linear-gradient(-45deg,rgba(0,0,0,.14) 0 4px,transparent 4px 9px)}
@@ -579,8 +598,23 @@ function faceSVG(kind){const fg=INK;
   const mouth={love:'<path d="M23 19 q7 9 14 0" fill="none" stroke-width="2.8" stroke-linecap="round"/>',happy:'<path d="M24 20 q6 6 12 0" fill="none" stroke-width="2.8" stroke-linecap="round"/>',meh:'<path d="M25 22 h10" stroke-width="2.8" stroke-linecap="round"/>',
     sad:'<path d="M24 24 q6 -6 12 0" fill="none" stroke-width="2.8" stroke-linecap="round"/>',dizzy:'<ellipse cx="30" cy="23" rx="4" ry="5" fill="none" stroke-width="2.6"/>',wow:'<ellipse cx="30" cy="22" rx="3.5" ry="4.5" fill="none" stroke-width="2.6"/>'}[kind]||'<path d="M26 20 q4 4 8 0" fill="none" stroke-width="2.8" stroke-linecap="round"/>';
   return `<svg viewBox="0 0 60 32" aria-hidden="true" fill="${fg}" stroke="${fg}"><ellipse cx="7" cy="20" rx="5.5" ry="3.2" fill="#FF8FA3" stroke="none" opacity=".6"/><ellipse cx="53" cy="20" rx="5.5" ry="3.2" fill="#FF8FA3" stroke="none" opacity=".6"/>${eyes}${mouth}</svg>`;}
-function blobSVG(colVar,kind='happy',cls=''){return `<svg class="blob ${cls}" viewBox="0 0 100 90" aria-hidden="true"><path d="M50 6 C78 4 95 26 93 52 C91 76 72 86 50 85 C26 86 7 76 7 52 C6 26 22 8 50 6Z" fill="var(${colVar})" stroke="${INK}" stroke-width="3.5" filter="url(#wobble)"/>
+function blobSVG(colVar,kind='happy',cls='',hurt=0){kind=sadder(kind,hurt);return `<svg class="blob ${cls}" viewBox="0 0 100 90" aria-hidden="true"><path d="M50 6 C78 4 95 26 93 52 C91 76 72 86 50 85 C26 86 7 76 7 52 C6 26 22 8 50 6Z" fill="var(${colVar})" stroke="${INK}" stroke-width="3.5" filter="url(#wobble)"/>${hurtSVG(hurt)}
   ${faceSVG(kind).replace('<svg ','<svg x="20" y="36" width="60" height="32" ')}</svg>`;}
+const HINK=INK;
+/* ---------- bruises: avatars get more beaten up at 75%, 50% and 25% hearts, and react when hit ---------- */
+const hurtLevel=(hp,max)=>{const f=hp/max;return f>.75?0:f>.5?1:f>.25?2:3;};
+function hurtSVG(h){let s='';
+  if(h>=2)s+=`<ellipse cx="35" cy="47" rx="9.5" ry="8" fill="#7A4FA0" opacity=".5"/><path d="M15 31 l6 4 -3 3 6 4" fill="none" stroke="${HINK}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>`;
+  if(h>=3)s+=`<path d="M9 27 C30 15 70 13 92 25 L92 34 C70 23 30 25 9 37Z" fill="#FFFFFF" stroke="${HINK}" stroke-width="2.2" stroke-linejoin="round"/><path d="M22 25 l3 6 M42 20 l2 6 M62 19 l1 6 M80 22 l-1 6" stroke="#D3CFE2" stroke-width="2"/>
+    <ellipse cx="68" cy="66" rx="7" ry="5" fill="#7A4FA0" opacity=".42"/><path d="M50 4 q4 -6 8 0" fill="none" stroke="${HINK}" stroke-width="2" stroke-linecap="round"/>`;
+  if(h>=1)s+=`<g transform="rotate(-28 75 22)"><rect x="61" y="16" width="30" height="11" rx="5.5" fill="#F3D6B0" stroke="${HINK}" stroke-width="2.2"/><rect x="71" y="17.2" width="10" height="8.6" fill="#E6C092"/><circle cx="74" cy="20" r="1" fill="${HINK}"/><circle cx="78" cy="23" r="1" fill="${HINK}"/></g>`;
+  if(h>=3)s+=`<g transform="rotate(35 22 64)"><rect x="10" y="59" width="24" height="9" rx="4.5" fill="#F3D6B0" stroke="${HINK}" stroke-width="2"/><rect x="18" y="60" width="8" height="7" fill="#E6C092"/></g>`;
+  return s;}
+const sadder=(kind,h)=>kind==='happy'||kind==='idle'?(h>=3?'sad':h>=2?'meh':kind):kind;
+/* swap the avatar in wrap for a squashed, dizzy, "Ow!" version, then settle into its new bruises */
+function ouch(wrap,colVar,hurt,kind='happy'){if(!wrap)return;const old=wrap.querySelector('svg.blob');if(old)old.remove();
+  wrap.insertAdjacentHTML('afterbegin',blobSVG(colVar,'dizzy','ouch',hurt)+`<span class="owie">${['Ow!','Oof!','Ouch!','Eek!','Argh!'][Math.floor(Math.random()*5)]}</span><span class="dizzy" aria-hidden="true"><i>★</i><i>★</i><i>★</i></span>`);
+  setTimeout(()=>{if(!wrap.isConnected)return;const b=wrap.querySelector('svg.blob');if(b)b.outerHTML=blobSVG(colVar,kind,'',hurt);wrap.querySelectorAll('.owie,.dizzy').forEach(e=>e.remove());},1600);}
 function confetti(){const cs=['#FF9E8A','#F2B84B','#8FD6A8','#93C3F0','#C9A0E8','#FF8FA3'];
   return `<div class="confetti" aria-hidden="true">${Array.from({length:28},(_,i)=>`<i style="left:${Math.random()*100}%;background:${cs[i%cs.length]};animation-delay:${(Math.random()*.9).toFixed(2)}s"></i>`).join('')}</div>`;}
 
@@ -692,10 +726,11 @@ function home(){
       <div class="row"><button class="btn" id="host">Start a room</button><button class="btn ghost" id="join">Join a room</button></div></section>
     <div class="tiles">
       <button class="tile sticker ink" id="m-local"><canvas id="t1" aria-hidden="true"></canvas><h3>Pass and play</h3><p>The same duel on one phone. Hand it over between cuts.</p></button>
-      <button class="tile sticker ink" id="m-solo"><canvas id="t2" aria-hidden="true"></canvas><h3>Practice</h3><p>Just you and the knife. Best ${Math.round(store.get('best',0))} so far.</p></button>
+      <button class="tile sticker ink" id="m-solo"><canvas id="t2" aria-hidden="true"></canvas><h3>Solo Streak</h3><p>Cut after cut until your hearts run out. Best ${Math.max(store.get('sbest:mix',0),store.get('sbest:weight',0),store.get('sbest:length',0))} nailed.</p></button>
     </div>
+    <div class="row c"><button class="link" id="m-prac">Or just practise a cut (best score ${Math.round(store.get('best',0))})</button></div>
     <div class="note sticker ink"><b>How it works</b><p>Each round you both get the same thing: a baguette, a butternut squash, a pineapple, a fish, a pencil, a glass of lemonade, and so on. Sizes and weights change every time and are what that thing would really weigh. Cut it into two halves of the same weight or length, or pour the glass exactly half full. A perfect half scores 100, 1% off scores about 85, 5% off about 37. Closest cut hits the other player for the gap, and from round 3 the hits get bigger.</p></div>`);
-  on('#m-local','click',localSetup);on('#m-solo','click',practice);on('#host','click',()=>roomName(true));on('#join','click',()=>roomName(false));
+  on('#m-local','click',localSetup);on('#m-solo','click',soloSetup);on('#m-prac','click',practice);on('#host','click',()=>roomName(true));on('#join','click',()=>roomName(false));
   heroGlass();tileLoops();
   app.querySelectorAll('.tile').forEach(g=>{const set=e=>{const r=g.getBoundingClientRect();g.style.setProperty('--ry',((e.clientX-r.left)/r.width-.5)*10+'deg');g.style.setProperty('--rx',(.5-(e.clientY-r.top)/r.height)*8+'deg');};
     const reset=()=>{g.style.setProperty('--ry','0deg');g.style.setProperty('--rx','0deg');};if(!RM){g.addEventListener('pointermove',set);g.addEventListener('pointerdown',set);}['pointerleave','pointerup','pointercancel'].forEach(ev=>g.addEventListener(ev,reset));});
@@ -751,7 +786,7 @@ function localRound(){
   const turn=i=>{const p=order[i];passScreen(VS.names[p],PV[p],i===0?`${esc(VS.names[order[1]])}, look away. Something new is on the board.`:`${esc(VS.names[order[0]])} has cut. No peeking at where!`,()=>
     cutScreen({who:VS.names[p],colVar:PV[p],top,obj,hurry:i===1&&VS.hurry?Date.now()+VS.hurry*1000:0,hurryWho:VS.names[order[0]],onLock:s=>{picks[p]=s;i===0?turn(1):revealScreen({obj,picks,names:VS.names,hp:VS.hp.slice(),max:VS.max,round:VS.round,
       onDone:(o)=>{if(o.win>=0)VS.hp[1-o.win]-=o.dmg;VS.history.push(hist(obj,picks,o));},
-      next:over=>{if(over)duelOver({names:VS.names,hp:VS.hp,round:VS.round,history:VS.history,again:()=>{VS={...VS,hp:[VS.max,VS.max],round:1,history:[]};localRound();}});else{VS.round++;localRound();}}});}}));};
+      next:over=>{if(over)duelOver({names:VS.names,hp:VS.hp,max:VS.max,round:VS.round,history:VS.history,again:()=>{VS={...VS,hp:[VS.max,VS.max],round:1,history:[]};localRound();}});else{VS.round++;localRound();}}});}}));};
   turn(0);
 }
 const hist=(obj,picks,o)=>({obj,picks:picks.slice(),win:o.win,errs:o.r.map(x=>+x.err.toFixed(2))});
@@ -761,7 +796,7 @@ function duelOutcome(obj,picks,round){const G=build(obj),r=picks.map(s=>judgeCut
   const diff=r[0].score-r[1].score,win=Math.abs(diff)<.05?-1:(diff>0?0:1);let dmg=0,bull=false;if(win>=0){dmg=Math.max(1,Math.round(Math.abs(diff)*m));if(r[win].err<.5){dmg+=10;bull=true;}}
   return {G,r,m,win,dmg,bull};}
 function hpHTML(p,hp,max){const pct=Math.max(0,hp/max*100);return `<div class="hp"><i id="hp${p}" style="width:${pct}%;background-color:var(${PV[p]})"></i></div><div class="hpnum" id="hpn${p}">${Math.max(0,Math.round(hp))} / ${max} hearts</div>`;}
-function fightersHTML(names,hp,max,kinds=['happy','happy']){return `<div class="fighters">${[0,1].map(p=>`<div class="fighter"><div class="who"><span class="blobw" id="bl${p}">${blobSVG(PV[p],kinds[p])}</span><b>${esc(names[p])}</b></div>${hpHTML(p,hp[p],max)}</div>`).join('')}</div>`;}
+function fightersHTML(names,hp,max,kinds=['happy','happy']){return `<div class="fighters">${[0,1].map(p=>`<div class="fighter"><div class="who"><span class="blobw" id="bl${p}">${blobSVG(PV[p],kinds[p],'',hurtLevel(hp[p],max))}</span><b>${esc(names[p])}</b></div>${hpHTML(p,hp[p],max)}</div>`).join('')}</div>`;}
 /* o: {obj, picks, names, hp (before), max, round, onDone(outcome) (local only), next(over), nextLabel} */
 function revealScreen(o){
   const out=duelOutcome(o.obj,o.picks,o.round),{G,r,m,win,dmg,bull}=out,meas=o.obj.measure,h=halfAt(G,meas);
@@ -790,7 +825,7 @@ function revealScreen(o){
     let msg;const hp=o.hp.slice();
     if(win<0)msg=`<h3>Dead even!</h3><p>Nobody takes damage.</p>`;
     else{const lose=1-win;hp[lose]-=dmg;
-      app.querySelector('#bl'+win+' .blob').classList.add('win');app.querySelector('#bl'+lose+' .blob').classList.add('hit');
+      app.querySelector('#bl'+win+' .blob').classList.add('win');ouch(app.querySelector('#bl'+lose),PV[lose],hurtLevel(Math.max(0,hp[lose]),o.max));
       app.querySelector('#bl'+lose).insertAdjacentHTML('beforeend',`<div class="dmg">−${dmg}</div>`);
       app.querySelector('#hp'+lose).style.width=Math.max(0,hp[lose]/o.max*100)+'%';app.querySelector('#hpn'+lose).textContent=`${Math.max(0,Math.round(hp[lose]))} / ${o.max} hearts`;
       msg=`<h3>${esc(o.names[win])} hits for ${dmg}!</h3><p>${bull?'Perfect-half bonus +10. ':''}${r[win].score.toFixed(1)} vs ${r[lose].score.toFixed(1)}${m>1?`, ×${m} damage`:''}.</p>`;}
@@ -802,13 +837,78 @@ function revealScreen(o){
 }
 function duelOver(o){
   const w=o.hp[0]>o.hp[1]?0:1;
-  show(`${confetti()}<section class="sticker ink pass pop">${blobSVG(PV[w],'love','win')}<h2>${esc(o.names[w])} wins!</h2>
+  show(`${confetti()}<section class="sticker ink pass pop">${blobSVG(PV[w],'love','win',hurtLevel(o.hp[w],o.max||100))}<h2>${esc(o.names[w])} wins!</h2>
     <p class="muted">After ${o.round} round${o.round>1?'s':''}, with ${Math.max(0,Math.round(o.hp[w]))} hearts left.</p>
     <div class="hist">${o.history.map((h,i)=>{const G=build(h.obj),t=taskWords(G,h.obj.measure);return `<div class="hrow"><b>R${i+1}</b><span>${esc(G.name)} · ${esc(h.obj.measure==='volume'?'pour':h.obj.measure)}</span>
       ${[0,1].map(p=>`<span class="e" style="background:var(${PV[p]});${h.win===p?'box-shadow:0 0 0 2px #1B1A2E':''}">${h.errs[p].toFixed(1)}%</span>`).join('')}</div>`;}).join('')}</div>
     <p class="hint">How far off each of you was, round by round. The ringed one won the round.</p>
     <div class="row c">${o.again?'<button class="btn" id="again">Rematch</button>':''}${o.room?'<button class="btn ghost" id="room">Back to the room</button>':''}<button class="btn ghost" id="home">Home</button></div></section>`);
   on('#again','click',o.again);on('#room','click',o.room);on('#home','click',home);
+}
+
+/* ---------- Solo Streak: the same tower as Hugh's ----------
+   Cut after cut until your hearts run out. Every cut costs 40% of the points you missed, ×1.5 more every five levels.
+   A score of 85 or more (about 1% off) counts as nailed, and that's your high score. Within 0.5% gives 5 hearts back. */
+let SO;
+const NAILED=85;
+const soloMult=l=>1+0.5*Math.floor((l-1)/5);
+const soloDamage=(score,l)=>Math.round((100-score)*0.4*soloMult(l));
+const WHAT_TEXT={mix:'Mix it up',weight:'By weight',length:'By length'};
+function soloSetup(){
+  let what=store.get('soloWhat','mix');const best=w=>store.get('sbest:'+w,0);
+  show(`<h2>Solo Streak</h2><section class="card stack" style="gap:16px">
+    <p>Cut thing after thing until your hearts run out. Every cut costs hearts: the further from half you are, the more you lose. A cut scoring ${NAILED} or more (about 1% off) counts as nailed, and that's your high score.</p>
+    <div class="stack"><span class="label">What you split</span>${seg('what',[['mix','Mix it up'],['weight','By weight'],['length','By length']],what)}</div>
+    <p class="hint">Damage multiplies every five levels: ×1.5 from level 6, ×2 from level 11, and so on. A cut within 0.5% of perfect gives back 5 hearts.</p>
+    <p id="best" class="hint"></p>
+    <div class="row"><button class="btn" id="start">Start a run</button><button class="link" id="back">Back</button></div></section>`);
+  const sb=()=>app.querySelector('#best').textContent=best(what)?`Your best with “${WHAT_TEXT[what]}”: ${best(what)} nailed.`:'No best score yet for this setting.';
+  sb();bindSeg('what',v=>{what=v;store.set('soloWhat',v);sb();});on('#back','click',home);
+  on('#start','click',()=>{SO={hp:100,max:100,level:1,nailed:0,what,history:[],last:null};soloLevel();});
+}
+function soloLevel(){const obj=newObj(SO.what,SO.last);SO.last=obj.kind;
+  cutScreen({who:`Nailed ${SO.nailed}`,colVar:'--p1',top:`Level ${SO.level} · ×${soloMult(SO.level)}`,obj,onLock:s=>soloReveal(obj,s)});}
+function soloReveal(obj,s){
+  const G=build(obj),m=obj.measure,j=judgeCut(G,m,s),h=halfAt(G,m),mul=soloMult(SO.level),nailed=j.score>=NAILED,bull=j.err<.5,dmg=soloDamage(j.score,SO.level),before=SO.hp;
+  SO.hp=Math.min(SO.max,SO.hp-dmg+(bull?5:0));if(nailed)SO.nailed++;SO.history.push({obj,s,score:j.score,err:j.err});
+  const dead=SO.hp<=0,sh=j.share;
+  show(`<div class="topbar"><span class="pill p1">Nailed ${SO.nailed}</span><span class="pill">Level ${SO.level} · ×${mul}</span></div>
+    <div class="fighter solo"><span class="blobw" id="sbl">${blobSVG('--p1','happy','',hurtLevel(before,SO.max))}</span><div class="grow"><div class="hp"><i id="shp" style="width:${Math.max(0,before)/SO.max*100}%;background-color:var(--p1)"></i></div><div class="hpnum" id="shn">${Math.max(0,before)} / ${SO.max} hearts</div></div></div>
+    <div class="board sticker ink"><canvas id="main"></canvas><div class="bhint" id="mh" style="opacity:0">The gold line is a perfect half</div></div>
+    <div class="results" style="grid-template-columns:1fr"><div class="rcard sticker ink"><canvas id="rc0"></canvas><div class="split" id="sp">&nbsp;</div><div class="units" id="un">&nbsp;</div><div class="score" id="sc">–</div><div class="verdict" id="vd">&nbsp;</div></div></div>
+    <div id="out"></div>`);
+  const cv=app.querySelector('#main'),H=G.glass?240:170,{c,W}=fitCanvas(cv,H),V=makeView(G,W,H,G.glass?{l:30,r:30,t:14,b:36}:{l:22,r:22,t:30,b:30});const fx=particles();let spark=false;
+  loop(t=>{c.clearRect(0,0,W,H);if(G.glass)drawGlass(c,V,t>1500?h*easeOut((t-1500)/600):0,{t,wave:1.5,face:t>1700?moodFor(j.err):'wow',stream:t>1500&&t<2100});else drawPart(c,V,0,1,{face:t>1700?moodFor(j.err):'wow'});
+    cutLine(c,V,s,PCOL[0],{lw:3,flag:'★',ext:10});
+    if(t>1500){c.globalAlpha=easeOut((t-1500)/400);cutLine(c,V,h,'#E8A21A',{dash:[8,5],lw:4,halo:true,ext:16});c.globalAlpha=1;if(!spark){spark=true;const p=V.at(h);fx.add(p.x,p.y,18,['#F2B84B','#FFE7A3','#FFFFFF'],3.2);app.querySelector('#mh').style.opacity=1;}}
+    fx.draw(c);});
+  resultScene(app.querySelector('#rc0'),G,m,s,PCOL[0],250);
+  later(()=>{app.querySelector('#sp').innerHTML=m==='volume'?`${(sh*100).toFixed(1)}% <s>full</s>`:`${(sh*100).toFixed(1)}<s>|</s>${((1-sh)*100).toFixed(1)}`;
+    app.querySelector('#un').textContent=m==='weight'?`${fmtG(G.total.weight*sh)} | ${fmtG(G.total.weight*(1-sh))}`:m==='length'?`${fmtCm(G.L*sh)} | ${fmtCm(G.L*(1-sh))}`:`${fmtMl(G.total.volume*sh)} of ${fmtMl(G.total.volume)}`;
+    const el=app.querySelector('#sc'),t0=performance.now();const f=t=>{const k=Math.min(1,(t-t0)/700);el.textContent=(j.score*k).toFixed(1);if(k<1&&el.isConnected)requestAnimationFrame(f);};requestAnimationFrame(f);
+    app.querySelector('#vd').textContent=`${verdict(j.err)} · ${j.err.toFixed(1)}% off`;},1500);
+  later(()=>{
+    app.querySelector('#shp').style.width=Math.max(0,SO.hp)/SO.max*100+'%';app.querySelector('#shn').textContent=`${Math.max(0,SO.hp)} / ${SO.max} hearts`;
+    const wrap=app.querySelector('#sbl'),hl=hurtLevel(Math.max(0,SO.hp),SO.max);
+    if(dmg>(bull?5:0)){ouch(wrap,'--p1',hl,dead?'dizzy':'happy');wrap.insertAdjacentHTML('beforeend',`<div class="dmg">−${dmg}</div>`);}
+    else{const b=wrap.querySelector('.blob');b.outerHTML=blobSVG('--p1','love','win',hl);}
+    const head=nailed?(bull?'Perfect half!':'Nailed it!'):dmg<=8?'Close one':'Ouch';
+    const line=`${dmg?`You lose ${dmg} heart${dmg>1?'s':''}${mul>1?` (×${mul})`:''}.`:'No damage.'}${bull?' +5 hearts back for the perfect half.':''}`;
+    app.querySelector('#out').innerHTML=`<div class="stack" style="align-items:center"><div class="sticker ink banner pop"><h3>${head}</h3><p>${line}</p></div>
+      <button class="btn" id="next">${dead?'See your score':(SO.level%5===0?`Next one · damage now ×${soloMult(SO.level+1)}`:'Next one')}</button></div>`;
+    on('#next','click',()=>{if(dead)soloOver();else{SO.level++;soloLevel();}});
+  },2500);
+}
+function soloOver(){
+  const key='sbest:'+SO.what,prev=store.get(key,0),isBest=SO.nailed>prev;if(isBest)store.set(key,SO.nailed);
+  const avg=SO.history.reduce((a,x)=>a+x.score,0)/SO.history.length;
+  show(`${isBest&&SO.nailed?confetti():''}<section class="sticker ink pass pop">${blobSVG('--p1',SO.nailed>=prev&&SO.nailed?'love':'dizzy',isBest?'win':'',3)}
+    <h2>${isBest&&SO.nailed?'New best! ':''}You nailed ${SO.nailed} cut${SO.nailed===1?'':'s'}</h2>
+    <div class="statrow"><div class="sticker ink stat"><b>${SO.level}</b><span>levels</span></div><div class="sticker ink stat"><b>${avg.toFixed(1)}</b><span>average score</span></div><div class="sticker ink stat"><b>${Math.max(prev,SO.nailed)}</b><span>best nailed</span></div></div>
+    <div class="hist">${SO.history.map((x,i)=>{const G=build(x.obj);return `<div class="hrow"><b>L${i+1}</b><span>${x.score>=NAILED?'★ ':''}${esc(G.name)} · ${x.obj.measure==='volume'?'pour':x.obj.measure}</span><span class="e" style="background:var(--p1)">${x.err.toFixed(1)}%</span><span class="e" style="background:#F2B84B">${Math.round(x.score)}</span></div>`;}).join('')}</div>
+    <p class="hint">How far off each cut was, and its score. Stars are cuts you nailed.</p>
+    <div class="row c"><button class="btn" id="again">Go again</button><button class="btn ghost" id="home">Home</button></div></section>`);
+  on('#again','click',()=>{SO={hp:100,max:100,level:1,nailed:0,what:SO.what,history:[],last:null};soloLevel();});on('#home','click',home);
 }
 
 /* ---------- practice ---------- */
@@ -1011,7 +1111,7 @@ function renderOnline(){
     const g=d.game,nm=d.names.map(esc),pp=pending('pick'),pr=pending('ready');
     const myPick=g.picks[me]!=null?g.picks[me]:(pp&&pp.round===g.round?pp.s:null);
     const myReady=g.ready[me]||(pr&&pr.round===g.round);
-    if(g.revealed&&g.over&&NET.overSeen===g.gid){key=`over|${g.gid}|${d.v}`;draw=()=>duelOver({names:d.names,hp:g.hp,round:g.round,history:g.history,again:NET.host?onlineRematch:null,room:backToRoom});}
+    if(g.revealed&&g.over&&NET.overSeen===g.gid){key=`over|${g.gid}|${d.v}`;draw=()=>duelOver({names:d.names,hp:g.hp,max:g.max,round:g.round,history:g.history,again:NET.host?onlineRematch:null,room:backToRoom});}
     else if(g.revealed&&myReady){key=`ready|${g.gid}|${g.round}`;draw=()=>waitScreen(`Waiting for ${nm[them]} to be ready…`);}
     else if(g.revealed){key=`rev|${g.gid}|${g.round}`;draw=()=>revealScreen({obj:g.obj,picks:g.picks,names:d.names,hp:g.hpBefore.slice(),max:g.max,round:g.round,next:over=>onlineNext(g.round,over)});}
     else if(myPick!=null){key=`lock|${g.gid}|${g.round}`;draw=()=>waitScreen(`Cut! Waiting for ${nm[them]}…`,{obj:g.obj,s:myPick});}
@@ -1054,7 +1154,7 @@ home=function(){homeBase();if(!NET.active)return;NET.away=true;const box=app.que
   on('#endg','click',()=>{NET.away=false;backToRoom();});
   on('#toroom','click',()=>{NET.away=false;NET.key='';const g=NET.doc&&NET.doc.game;if(g&&g.over)NET.overSeen=g.gid;renderOnline();});on('#leave','click',leaveRoom);};
 
-window.__ghf={KINDS,build,shareAt,halfAt,judgeCut,newObj,cutScreen,revealScreen,duelOver};
+window.__ghf={KINDS,build,shareAt,halfAt,judgeCut,newObj,cutScreen,revealScreen,duelOver,soloSetup,ouch,blobSVG};
 bootOnline()||home();
 })();
 </script>
